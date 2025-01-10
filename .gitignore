@@ -8,13 +8,18 @@
 # Environments
 .vscode
 .DS_Store
+.env
 .venv
 venv
 
-airflow/*
+# Folders
+airflow/config/*
+airflow/logs/*
+airflow/plugins/*
 data/*
 docs/*
 minio/*
+models/*
 notebooks/*
 references/*
 reports/*
