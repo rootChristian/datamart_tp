@@ -74,7 +74,7 @@ def show_table(query, table_name, limit=100):
         # Afficher le spinner pendant que les données sont récupérées
         with st.spinner(f"Chargement des données de {table_name}..."):
             # Ajouter une clause LIMIT pour limiter le nombre de résultats
-            query_with_limit = query + f" LIMIT {limit}"
+            query_with_limit = query + f" --LIMIT {limit}"
             df = pd.read_sql(query_with_limit, conn)
 
         # Affichage des données dans Streamlit une fois le chargement terminé

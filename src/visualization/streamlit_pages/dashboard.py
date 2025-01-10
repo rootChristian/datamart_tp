@@ -45,7 +45,7 @@ def load_data():
         JOIN dimension_vendor v ON f.id_vendor = v.id_vendor
         JOIN dimension_zone zp ON f.id_zone_pickup = zp.id_zone
         JOIN dimension_zone zd ON f.id_zone_dropoff = zd.id_zone
-        LIMIT 100
+        --LIMIT 100
     """
     return pd.read_sql(query_fact, engine)
 
