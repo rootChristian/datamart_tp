@@ -1,24 +1,16 @@
-"""
-***********************************************************************
-************** Author:   Christian KEMGANG NGUESSOP *******************
-************** Project:   datamart                  *******************
-************** Version:  1.0.0                      *******************
-***********************************************************************
-"""
-
 import os
 import streamlit as st
 import pandas as pd
+import psycopg2
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from sqlalchemy import create_engine
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
+# Charger les variables d'environnement depuis le fichier .env
 load_dotenv()
 
-# Construct the endpoint URL from the environment variables
 # Config datamart
 dm_dbms_username = os.getenv("DM_DBMS_USERNAME")
 dm_dbms_password = os.getenv("DM_DBMS_PASSWORD")
@@ -26,14 +18,31 @@ dm_dbms_ip = os.getenv("DM_DBMS_IP")
 dm_dbms_port = os.getenv("DM_DBMS_PORT")
 dm_dbms_database = os.getenv("DM_DBMS_DATABASE")
 
-# URL de connexion dynamique avec les variables d'environnement
-db_url = f"postgresql://{dm_dbms_username}:{dm_dbms_password}@{dm_dbms_ip}:{dm_dbms_port}/{dm_dbms_database}"
+
+# Fonction pour se connecter à PostgreSQL avec psycopg2
+def connect_to_db():
+    try:
+        # Connexion à PostgreSQL avec psycopg2
+        connection = psycopg2.connect(
+            host=dm_dbms_ip,
+            port=dm_dbms_port,
+            user=dm_dbms_username,
+            password=dm_dbms_password,
+            dbname=dm_dbms_database,
+        )
+        return connection
+    except Exception as e:
+        st.error(f"Erreur de connexion à la base de données : {e}")
+        return None
 
 
 # Charger les données depuis PostgreSQL avec un cache pour éviter de charger tout le temps
-@st.cache_data(ttl=86400)  # Cache pendant 24 heure (modifiable)
+@st.cache_data(ttl=86400)  # Cache pendant 24 heures (modifiable)
 def load_data():
-    engine = create_engine(db_url)  # Connexion à la base de données avec SQLAlchemy
+    conn = connect_to_db()  # Connexion à la base de données avec psycopg2
+    if conn is None:
+        return pd.DataFrame()  # Retourne un DataFrame vide si la connexion échoue
+
     query_fact = """
         SELECT v.vendor_name, COALESCE(tp.month, td.month) as month, COALESCE(tp.week, td.week) as week, 
                COALESCE(tp.day, td.day) as day, COALESCE(tp.hour, td.hour) as hour, zp.name_zone as zone_pickup, 
@@ -45,9 +54,17 @@ def load_data():
         JOIN dimension_vendor v ON f.id_vendor = v.id_vendor
         JOIN dimension_zone zp ON f.id_zone_pickup = zp.id_zone
         JOIN dimension_zone zd ON f.id_zone_dropoff = zd.id_zone
-        --LIMIT 100
+        LIMIT 200000
     """
-    return pd.read_sql(query_fact, engine)
+    try:
+        # Exécuter la requête et retourner les résultats sous forme de DataFrame
+        df = pd.read_sql(query_fact, conn)
+        return df
+    except Exception as e:
+        st.error(f"Erreur lors du chargement des données : {e}")
+        return pd.DataFrame()  # Retourne un DataFrame vide en cas d'erreur
+    finally:
+        conn.close()  # Fermer la connexion à la base de données
 
 
 # Prétraitement des données pour les analyses (mappage des mois, jours, etc.)

@@ -65,7 +65,7 @@ def get_table_row_count(table_name):
 
 # Fonction pour afficher une table spécifique avec un spinner de chargement et pagination avec un cache pour éviter de charger tout le temps
 @st.cache_data(ttl=86400)  # Cache pendant 24 heure (modifiable)
-def show_table(query, table_name, limit=100):
+def show_table(query, table_name, limit=200000):
     conn = connect_to_db()
     if conn is None:
         return
@@ -74,7 +74,7 @@ def show_table(query, table_name, limit=100):
         # Afficher le spinner pendant que les données sont récupérées
         with st.spinner(f"Chargement des données de {table_name}..."):
             # Ajouter une clause LIMIT pour limiter le nombre de résultats
-            query_with_limit = query + f" --LIMIT {limit}"
+            query_with_limit = query + f" LIMIT {limit}"
             df = pd.read_sql(query_with_limit, conn)
 
         # Affichage des données dans Streamlit une fois le chargement terminé
