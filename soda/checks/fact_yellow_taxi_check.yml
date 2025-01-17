@@ -1,0 +1,61 @@
+#/**********************************************************************
+#************** Author:   Christian KEMGANG NGUESSOP *******************
+#************** Project:   shophair                  *******************
+#************** Version:  1.0.0                      *******************
+#***********************************************************************/
+
+# Fichier de configuration pour la qualité des données avec Soda
+checks for fact_yellow_taxi:
+    - row_count > 0 # Vérification des lignes dans la table
+
+    - schema:
+          name: Confirmation de la présence correcte des colonnes ainsi que la conformité des types de variables
+          # Vérification des colonnes qui génère une erreur (échec) si elles sont manquantes
+          fail:
+              when required column missing:
+                  [
+                      id_vendor,
+                      id_time_pickup,
+                      id_time_dropoff,
+                      id_zone_pickup,
+                      id_zone_dropoff,
+                      id_payment_type,
+                      fare_amount,
+                      extra,
+                      mta_tax,
+                      tip_amount,
+                      tolls_amount,
+                      improvement_surcharge,
+                      total_amount,
+                      congestion_surcharge,
+                      airport_fee,
+                  ]
+              when wrong column type:
+                  id_vendor: integer
+                  id_time_pickup: integer
+                  id_time_dropoff: integer
+                  id_zone_pickup: integer
+                  id_payment_type: integer
+                  fare_amount: numeric
+                  extra: numeric
+                  mta_tax: numeric
+                  tip_amount: numeric
+                  tolls_amount: numeric
+                  improvement_surcharge: numeric
+                  total_amount: numeric
+                  congestion_surcharge: numeric
+                  airport_fee: numeric
+
+    # Vérification des valeurs manquantes dans les colonnes
+    - missing_count(id_time_pickup) = 0:
+          name: "Aucune valeur NULL dans la colonne 'id_time_pickup'."
+          fail: when > 0
+    - missing_count(id_time_dropoff) = 0:
+          name: "Aucune valeur NULL dans la colonne 'id_time_dropoff'."
+          fail: when > 0
+    - missing_count(id_zone_pickup) = 0:
+          name: "Aucune valeur NULL dans la colonne 'id_zone_pickup'."
+          fail: when > 0
+    - missing_count(id_zone_dropoff) = 0:
+          name: "Aucune valeur NULL dans la colonne 'id_zone_dropoff'."
+          fail: when > 0

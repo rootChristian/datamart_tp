@@ -1,0 +1,75 @@
+#/**********************************************************************
+#************** Author:   Christian KEMGANG NGUESSOP *******************
+#************** Project:   shophair                  *******************
+#************** Version:  1.0.0                      *******************
+#***********************************************************************/
+
+# Fichier de configuration pour la qualité des données avec Soda
+checks for dimension_time:
+    - row_count > 0 # Vérification des lignes dans la table
+
+    - schema:
+          name: "Confirmation de la présence correcte des colonnes ainsi que la conformité des types de variables"
+          fail:
+              when required column missing:
+                  [
+                      id_time,
+                      year,
+                      month,
+                      day,
+                      hour,
+                      minute,
+                      seconde,
+                      week,
+                      trimester,
+                  ]
+              when wrong column type:
+                  id_time: integer
+                  year: integer
+                  month: integer
+                  day: integer
+                  hour: integer
+                  minute: integer
+                  seconde: integer
+                  week: integer
+                  trimester: integer
+
+    - duplicate_count(id_time) = 0:
+          name: "Aucun doublon dans la colonne 'id_time'."
+          fail: when > 0
+
+    - missing_count(id_time) = 0:
+          name: "Aucune valeur NULL dans la colonne 'id_time'."
+          fail: when > 0
+
+    - missing_count(year) = 0:
+          name: "Aucune valeur NULL dans la colonne 'year'."
+          fail: when > 0
+
+    - missing_count(month) = 0:
+          name: "Aucune valeur NULL dans la colonne 'month'."
+          fail: when > 0
+
+    - missing_count(day) = 0:
+          name: "Aucune valeur NULL dans la colonne 'day'."
+          fail: when > 0
+
+    - missing_count(week) = 0:
+          name: "Aucune valeur NULL dans la colonne 'week'."
+          fail: when > 0
+
+    - missing_count(trimester) = 0:
+          name: "Aucune valeur NULL dans la colonne 'trimester'."
+          fail: when > 0
+
+    - invalid_count(month) = 0:
+          name: "La colonne 'month' doit avoir des valeurs entre 1 et 12."
+          valid min: 1
+          valid max: 12
+          fail: when not between 1 and 12
+
+    - invalid_count(day) = 0:
+          name: "La colonne 'day' doit avoir des valeurs entre 1 et 31."
+          valid min: 1
+          valid max: 31
+          fail: when not between 1 and 31

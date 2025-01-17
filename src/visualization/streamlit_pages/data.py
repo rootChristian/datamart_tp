@@ -65,7 +65,7 @@ def get_table_row_count(table_name):
 
 # Fonction pour afficher une table spécifique avec un spinner de chargement et pagination avec un cache pour éviter de charger tout le temps
 @st.cache_data(ttl=86400)  # Cache pendant 24 heure (modifiable)
-def show_table(query, table_name, limit=200000):
+def show_table(query, table_name, limit=1000000):
     conn = connect_to_db()
     if conn is None:
         return

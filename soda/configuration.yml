@@ -1,0 +1,15 @@
+#/**********************************************************************
+#************** Author:   Christian KEMGANG NGUESSOP *******************
+#************** Project:   shophair                  *******************
+#************** Version:  1.0.0                      *******************
+#***********************************************************************/
+
+data_source tp_datamart:
+    type: postgres
+    connection:
+        host: ${DOCKER_DBMS_IP}
+        port: ${DOCKER_DBMS_PORT}
+        username: ${DOCKER_DBMS_USERNAME}
+        password: ${DOCKER_DBMS_PASSWORD}
+        database: ${DOCKER_DBMS_DATABASE}
+        schema: public

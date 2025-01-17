@@ -1,0 +1,43 @@
+#/**********************************************************************
+#************** Author:   Christian KEMGANG NGUESSOP *******************
+#************** Project:   shophair                  *******************
+#************** Version:  1.0.0                      *******************
+#***********************************************************************/
+
+# Fichier de configuration pour la qualité des données avec Soda
+checks for dimension_zone:
+    - row_count > 0 # Vérification des lignes dans la table
+
+    - schema:
+          name: Confirmation de la présence correcte des colonnes ainsi que la conformité des types de variables
+          # Vérification des colonnes qui génère une erreur (échec) si elles sont manquantes
+          fail:
+              when required column missing:
+                  [id_zone, borough, name_zone, service_zone]
+              when wrong column type:
+                  id_zone: integer
+                  borough: varchar
+                  name_zone: varchar
+                  service_zone: varchar
+
+    # Vérification des doublons dans les colonnes
+    - duplicate_count(id_zone) = 0:
+          name: "Aucun doublon dans la colonne 'id_zone'."
+          fail: when > 0
+
+    # Vérification des valeurs manquantes dans les colonnes
+    - missing_count(id_zone) = 0:
+          name: "Aucune valeur NULL dans la colonne 'id_zone'."
+          fail: when > 0
+
+    - missing_count(borough) = 0:
+          name: "Aucune valeur NULL dans la colonne 'borough'."
+          warn: when > 0
+
+    - missing_count(name_zone) = 0:
+          name: "Aucune valeur NULL dans la colonne 'name_zone'."
+          fail: when > 0
+
+    - missing_count(service_zone) = 0:
+          name: "Aucune valeur NULL dans la colonne 'service_zone'."
+          warn: when > 0

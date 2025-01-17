@@ -1,0 +1,34 @@
+#/**********************************************************************
+#************** Author:   Christian KEMGANG NGUESSOP *******************
+#************** Project:   shophair                  *******************
+#************** Version:  1.0.0                      *******************
+#***********************************************************************/
+
+# Fichier de configuration pour la qualité des données avec Soda
+checks for dimension_vendor:
+    - row_count > 0 # Vérification des lignes dans la table
+
+    - schema:
+          name: Confirmation de la présence correcte des colonnes ainsi que la conformité des types de variables
+          # Vérification des colonnes qui génère une erreur (échec) si elles sont manquantes
+          fail:
+              when required column missing: [id_vendor, vendor_name]
+              when wrong column type:
+                  id_vendor: integer
+                  vendor_name: varchar
+
+    # Vérification des doublons dans les colonnes
+    - duplicate_count(id_vendor) = 0:
+          name: "Aucun doublon dans la colonne 'id_vendor'."
+          fail: when > 0
+    - duplicate_count(vendor_name) = 0:
+          name: "Aucun doublon dans la colonne 'vendor_name'."
+          warn: when > 0
+
+    # Vérification des valeurs manquantes dans les colonnes
+    - missing_count(id_vendor) = 0:
+          name: "Aucune valeur NULL dans la colonne 'id_vendor'."
+          fail: when > 0
+    - missing_count(vendor_name) = 0:
+          name: "Aucune valeur NULL dans la colonne 'vendor_name'."
+          fail: when > 0

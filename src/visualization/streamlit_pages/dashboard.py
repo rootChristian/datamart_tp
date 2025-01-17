@@ -1,3 +1,11 @@
+"""
+***********************************************************************
+************** Author:   Christian KEMGANG NGUESSOP *******************
+************** Project:   datamart                  *******************
+************** Version:  1.0.0                      *******************
+***********************************************************************
+"""
+
 import os
 import streamlit as st
 import pandas as pd
@@ -5,7 +13,6 @@ import psycopg2
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from sqlalchemy import create_engine
 from dotenv import load_dotenv
 
 # Charger les variables d'environnement depuis le fichier .env
@@ -54,7 +61,7 @@ def load_data():
         JOIN dimension_vendor v ON f.id_vendor = v.id_vendor
         JOIN dimension_zone zp ON f.id_zone_pickup = zp.id_zone
         JOIN dimension_zone zd ON f.id_zone_dropoff = zd.id_zone
-        LIMIT 200000
+        LIMIT 1000000
     """
     try:
         # Exécuter la requête et retourner les résultats sous forme de DataFrame
@@ -116,7 +123,9 @@ def preprocess_data(df):
 
 
 # Fonction de création de graphiques
-def create_bar_chart(data, x_col, y_col, title, x_title, y_title, color=None):
+def create_bar_chart(
+    data, x_col, y_col, title, x_title, y_title, y_init_value, color=None
+):
     """
     Crée un graphique à barres verticales avec Plotly.
     """
@@ -141,13 +150,70 @@ def create_bar_chart(data, x_col, y_col, title, x_title, y_title, color=None):
             # color_discrete_sequence=["skyblue"],  # Choisit une couleur fixe si color n'est pas passé
         )
 
+    # Après avoir créé le graphique dans create_bar_chart, vous pouvez ajuster l'axe Y
+    fig.update_yaxes(range=[y_init_value, max(data[y_col]) + y_init_value])
+
     # Mise à jour de la mise en page
     fig.update_layout(
         title_font=dict(family="Arial", size=24, color="black"),
         template="none",  # Choisir le style de la mise en page
         showlegend=True,  # Pas besoin de légende ici
-        xaxis_title=x_title,  # Titre de l'axe X
-        yaxis_title=y_title,  # Titre de l'axe Y
+        margin=dict(
+            l=80, r=40, t=40, b=90
+        ),  # Ajuste les marges pour un meilleur espacement
+    )
+
+    return fig
+
+
+# Fonction de création de graphiques
+def create_bar_chart_bis(
+    data,
+    x_col,
+    y_col,
+    title,
+    x_title,
+    y_title,
+    valeur_initiale_max,
+    color=None,
+    threshold=200000,
+):
+    """
+    Crée un graphique à barres verticales avec Plotly.
+    - Supprime les valeurs insignifiantes (en dessous du seuil).
+    """
+    # Filtrer les données pour exclure les valeurs insignifiantes
+    data_filtered = data[data[y_col] >= threshold]
+
+    # Si color est passé, on l'utilise pour colorier les barres, sinon on les colore d'une couleur fixe
+    if color:
+        fig = px.bar(
+            data_filtered,
+            x=x_col,
+            y=y_col,
+            labels={x_col: x_title, y_col: y_title},
+            title=title,
+            color=color,  # Utilisation de la colonne spécifiée pour la couleur
+            color_continuous_scale="Viridis",  # Choix du dégradé de couleurs
+        )
+    else:
+        fig = px.bar(
+            data_filtered,
+            x=x_col,
+            y=y_col,
+            labels={x_col: x_title, y_col: y_title},
+            title=title,
+            # color_discrete_sequence=["skyblue"],  # Choisit une couleur fixe si color n'est pas passé
+        )
+
+    # Ajuster l'échelle de l'axe Y (utiliser "montant_moyen" pour calculer la plage)
+    fig.update_yaxes(range=[200000, valeur_initiale_max + 100000])
+
+    # Mise à jour de la mise en page
+    fig.update_layout(
+        title_font=dict(family="Arial", size=24, color="black"),
+        template="none",  # Choisir le style de la mise en page
+        showlegend=True,  # Pas besoin de légende ici
         margin=dict(
             l=80, r=40, t=40, b=90
         ),  # Ajuste les marges pour un meilleur espacement
@@ -226,12 +292,22 @@ def show_dashboard():
             col=2,
         )
 
+        # Ajuster l'axe y pour commencer à une certaine valeur
+        fig.update_yaxes(
+            range=[20000, max(pickup_counts.values).max() + 20000], row=1, col=1
+        )
+        fig.update_yaxes(
+            range=[20000, max(dropoff_counts.values).max() + 20000], row=1, col=2
+        )
+
         fig.update_layout(
             title="Top 10 des Zones de Prise en Charge et de Dépôt",
             height=500,
             showlegend=True,
             title_font=dict(size=24),
             margin=dict(t=80, b=40, l=40, r=40),
+            xaxis_title="Nom des zones",  # Titre de l'axe X pour les deux graphiques
+            yaxis_title="Nombre de trajets",  # Titre de l'axe Y pour les deux graphiques
         )
         st.plotly_chart(fig)
 
@@ -251,6 +327,7 @@ def show_dashboard():
                     "Distribution des trajets par mois",
                     "Mois",
                     "Nombre de trajets",
+                    100000,  # Valeur initiale sur l'axe des Y
                 )
             )
             # Trajets par jour
@@ -262,6 +339,7 @@ def show_dashboard():
                     "Distribution des trajets par jour",
                     "Jour",
                     "Nombre de trajets",
+                    15000,  # Valeur initiale sur l'axe des Y
                 )
             )
 
@@ -275,6 +353,7 @@ def show_dashboard():
                     "Distribution des trajets par jour de la semaine",
                     "Jour de la semaine",
                     "Nombre de trajets",
+                    20000,  # Valeur initiale sur l'axe des Y
                 )
             )
             # Trajets par heure
@@ -286,6 +365,7 @@ def show_dashboard():
                     "Distribution des trajets par heure",
                     "Heure",
                     "Nombre de trajets",
+                    3000,  # Valeur initiale sur l'axe des Y
                 )
             )
 
@@ -293,6 +373,35 @@ def show_dashboard():
         # Analyse des méthodes de paiement
         st.header("📈 Répartition des Méthodes de Paiement")
 
+        # Calcul des valeurs uniques et leurs fréquences pour la colonne "payment_method"
+        payment_counts = df["payment_method"].value_counts()
+
+        # Création de l'histogramme vertical (en mettant les méthodes de paiement sur l'axe vertical)
+        fig = px.bar(
+            payment_counts,
+            y=payment_counts.index,  # Les méthodes de paiement sur l'axe Y
+            x=payment_counts.values,  # Fréquences de chaque méthode sur l'axe X
+            labels={  # Labels des axes
+                "y": "Méthode de Paiement",  # Label de l'axe Y
+                "x": "Nombre de Transactions",  # Label de l'axe X
+            },
+            color=payment_counts.index,  # Colorier les barres par méthode de paiement
+            # color_discrete_sequence=px.colors.qualitative.Set1,  # Palette de couleurs
+        )
+
+        # Ajout des légendes et autres options de style
+        fig.update_layout(
+            xaxis_title="Nombre de Transactions",  # Titre de l'axe X
+            yaxis_title="Méthode de Paiement",  # Titre de l'axe Y
+            showlegend=True,  # Afficher la légende
+            legend_title="Méthodes de Paiement",  # Titre de la légende
+            legend_orientation="v",  # Orientation horizontale de la légende
+            # legend=dict(x=1, y=1),  # Position de la légende en dessous du graphique
+        )
+
+        # Affichage du graphique dans Streamlit
+        st.plotly_chart(fig)
+        """
         payment_counts = df["payment_method"].value_counts()
         fig = px.pie(
             payment_counts,
@@ -301,39 +410,79 @@ def show_dashboard():
             title="Répartition des Méthodes de Paiement",
         )
         st.plotly_chart(fig)
-
+        """
     elif option == "Fournisseurs de Taxis":
         # Analyse des fournisseurs de taxis
         st.header("📈 Performance des Fournisseurs de Taxis")
 
         vendor_counts = df.groupby("vendor_name").size().reset_index(name="trajets")
-        fig1 = create_bar_chart(
+
+        # Extraire la valeur maximale de "trajets" pour définir la plage de l'axe Y
+        valeur_initiale_max = vendor_counts["trajets"].max()
+
+        fig1 = create_bar_chart_bis(
             vendor_counts,
             "vendor_name",
             "trajets",
             "Nombre de Trajets par Fournisseur",
-            "Fournisseur",
+            "Nom des fournisseurs",
             "Nombre de Trajets",
+            valeur_initiale_max,
             color="trajets",  # Colorier les barres en fonction du trajet
         )
 
+        # Calcul du montant moyen par fournisseur
         vendor_amount = (
             df.groupby("vendor_name")["total_amount"]
             .mean()
             .reset_index(name="montant_moyen")
         )
+
         # Formater les valeurs de 'montant_moyen' avec 2 décimales
         vendor_amount["montant_moyen"] = vendor_amount["montant_moyen"].apply(
             lambda x: f"{x:.2f}"
         )
-        fig2 = create_bar_chart(
+
+        # Ajouter la colonne 'montant_moyen' comme texte pour les labels des barres
+        vendor_amount["label"] = (
+            vendor_amount["vendor_name"] + ": " + vendor_amount["montant_moyen"]
+        )
+
+        # Création de l'histogramme vertical (en mettant les fournisseurs sur l'axe X et montant_moyen sur l'axe Y)
+        fig2 = px.bar(
             vendor_amount,
-            "vendor_name",
-            "montant_moyen",
-            "Montant Moyen par Fournisseur",
-            "Fournisseur",
-            "Montant Moyen",
-            color="montant_moyen",  # Colorier les barres en fonction du montant moyen
+            x="vendor_name",  # Les fournisseurs sur l'axe X
+            y="montant_moyen",  # Montant moyen sur l'axe Y
+            title="Montant Moyen par Fournisseur",
+            color="montant_moyen",  # Colorier les barres par montant moyen
+            # text="label",  # Afficher les labels avec le montant moyen sur chaque barre
+            color_continuous_scale="Viridis",  # px.colors.sequential.Blues,  # Palette de couleurs (dégradé bleu)
+        )
+
+        # Convertir la colonne 'montant_moyen' en valeurs numériques (en cas de valeurs non numériques, elles seront converties en NaN)
+        vendor_amount["montant_moyen"] = pd.to_numeric(
+            vendor_amount["montant_moyen"], errors="coerce"
+        )
+
+        # Calculer la valeur maximale après conversion en numérique
+        valeur_max = vendor_amount["montant_moyen"].max()
+
+        # Ajuster l'échelle de l'axe Y (utiliser "montant_moyen" pour calculer la plage)
+        fig2.update_yaxes(range=[20, valeur_max + 5])
+
+        # Ajout des légendes et autres options de style
+        fig2.update_layout(
+            xaxis_title="Nom des fournisseurs",  # Titre de l'axe X
+            yaxis_title="Montant moyen",  # Titre de l'axe Y
+            showlegend=True,  # Afficher la légende
+            legend_title="Montant Moyen",  # Titre de la légende
+            legend_orientation="v",  # Orientation verticale de la légende
+            title_font=dict(
+                family="Arial", size=24, color="black"
+            ),  # Taille de la police du titre
+            title_x=0.5,  # Centrer le titre horizontalement
+            title_xanchor="center",  # Centrer par rapport à l'axe X
+            margin=dict(t=40, b=40, l=40, r=40),  # Marges autour du graphique
         )
 
         st.plotly_chart(fig1)

@@ -7,6 +7,18 @@ x-airflow-common: &airflow-common
     image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:latest-python3.11}
     # build: .
     environment: &airflow-common-env
+        DOCKER_DBMS_IP: ${DOCKER_DBMS_IP}
+        DOCKER_DBMS_PORT: ${DOCKER_DBMS_PORT}
+        DOCKER_DBMS_USERNAME: ${DOCKER_DBMS_USERNAME}
+        DOCKER_DBMS_PASSWORD: ${DOCKER_DBMS_PASSWORD}
+        DOCKER_DBMS_DATABASE: ${DOCKER_DBMS_DATABASE}
+        DOCKER_DBMS_DATASOURCE: ${DOCKER_DBMS_DATASOURCE}
+        ################################## Minio
+        MINIO_HOSTNAME: ${MINIO_HOSTNAME}
+        MINIO_PORT: ${MINIO_PORT}
+        MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+        MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+        ################################## Airflow
         AIRFLOW__CORE__EXECUTOR: CeleryExecutor
         AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres-airflow:5432/airflow
         AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres-airflow:5432/airflow
@@ -22,7 +34,7 @@ x-airflow-common: &airflow-common
         AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: "true"
         # WARNING: Use _PIP_ADDITIONAL_REQUIREMENTS option ONLY for a quick checks
         # for other purpose (development, test and especially production usage) build/extend Airflow image.
-        _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:- minio}
+        _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:- minio soda-core-postgres} # Ajout de minio et soda-core-postgres
     networks:
         - spark_network
     volumes:
@@ -30,6 +42,7 @@ x-airflow-common: &airflow-common
         - ${AIRFLOW_PROJ_DIR:-./airflow}/logs:/opt/airflow/logs
         - ${AIRFLOW_PROJ_DIR:-./airflow}/config:/opt/airflow/config
         - ${AIRFLOW_PROJ_DIR:-./airflow}/plugins:/opt/airflow/plugins
+        - ./soda:/opt/airflow/soda # Montage du volume Soda
     user: "${AIRFLOW_UID:-50000}:0"
     depends_on: &airflow-common-depends-on
         redis:
@@ -51,6 +64,16 @@ services:
         environment:
             - MINIO_ROOT_USER=${MINIO_ACCESS_KEY}
             - MINIO_ROOT_PASSWORD=${MINIO_SECRET_KEY}
+        networks:
+            - spark_network
+
+    soda:
+        image: sodadata/soda-core
+        container_name: soda-core
+        environment:
+            - SODA_CONNECTION=tp_datamart # Nom de la connexion Soda définie dans configuration.yml
+        volumes:
+            - ./soda:/soda
         networks:
             - spark_network
 
