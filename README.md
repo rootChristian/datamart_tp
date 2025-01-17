@@ -1,8 +1,8 @@
-#########################################################################################
+##################################################################
 
 # 🚕 Welcome to the Taxi-Tech Project
 
-#########################################################################################
+##################################################################
 
 **Taxi-Tech** is a data analytics platform for New York's yellow taxi trips. It allows you to explore trip data to better understand demand, passenger behavior, and the performance of taxi providers.
 
@@ -65,11 +65,11 @@ The data comes from the **NYC Taxi & Limousine Commission** and is stored in a *
 
 Version 1.0 | Copyright © 2025
 
-#########################################################################################
+##################################################################
 
 ## `DEPENDENCIES`
 
-#########################################################################################
+##################################################################
 
 ### In the project directory, run this command to initialize the project and install dependencies:
 
