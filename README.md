@@ -89,3 +89,39 @@ Version 1.0 | Copyright © 2025
 
 -   `pip install streamlit streamlit-option-menu matplotlib geopandas seaborn plotly python-dotenv`
 -   `pip freeze > requirements.txt`
+-   `streamlit run app.py`
+
+### Environment variables (inside the file .env):
+
+-   `MINIO_HOSTNAME=minio`
+-   `MINIO_PORT=9000`
+-   `MINIO_ACCESS_KEY=minio`
+-   `MINIO_SECRET_KEY=minio`
+-   `WH_DBMS_USERNAME=postgres`
+-   `WH_DBMS_PASSWORD=admin`
+-   `WH_DBMS_IP=localhost`
+-   `WH_DBMS_PORT=15432`
+-   `WH_DBMS_DATABASE=tp_warehouse`
+-   `WH_DBMS_TABLE=warehouse`
+-   `DM_DBMS_USERNAME=postgres`
+-   `DM_DBMS_PASSWORD=admin`
+-   `DM_DBMS_IP=localhost`
+-   `DM_DBMS_PORT=15434`
+-   `DM_DBMS_DATABASE=tp_datamart`
+-   `WH_DBLINK_IP=db-warehouse`
+-   `WH_DBLINK_PORT=5432`
+-   `WH_DBLINK_DATABASE=tp_warehouse`
+-   `WH_DBLINK_USERNAME=postgres`
+-   `WH_DBLINK_PASSWORD=admin`
+-   `DOCKER_DB_USERNAME=admin`
+-   `DOCKER_DB_PASSWORD=admin`
+-   `DOCKER_AIRFLOW_USERNAME=airflow`
+-   `DOCKER_AIRFLOW_PASSWORD=airflow`
+-   `DOCKER_AIRFLOW_DB=airflow`
+-   `DOCKER_AIRFLOW_PORT=15433`
+-   `DOCKER_DBMS_USERNAME=postgres`
+-   `DOCKER_DBMS_PASSWORD=admin`
+-   `DOCKER_DBMS_IP=db-datamart`
+-   `DOCKER_DBMS_PORT=5432`
+-   `DOCKER_DBMS_DATABASE=tp_datamart`
+-   `DOCKER_DBMS_DATASOURCE=tp_datamart`
